@@ -6,7 +6,7 @@ Simple tool get time diffs. Can only diff against current time for now.
 td "2021-08-05 22:00:01"
 # 1h34m6s
 
-td -h "2021-08-05 22:00:01
+td -h "2021-08-05 22:00:01"
 # 1.57h
 ```
 
