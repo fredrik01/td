@@ -10,7 +10,7 @@ td -h "2021-08-05 22:00:01"
 # 1.57h
 ```
 
-## Installation
+## Install / Update
 
 ### MacOS
 

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"time"
 )
 
@@ -14,11 +15,17 @@ func main() {
 	flag.BoolVar(&diffInHours, "h", false, "diff in hours")
 	flag.Parse()
 
+	if len(flag.Args()) == 0 {
+		fmt.Println("Usage: td [flags] [argument]")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
+
 	timeString := flag.Arg(0)
 	timestamp, err := time.ParseInLocation(layoutDateTime, timeString, time.Local)
 
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatalf("Could not parse first timestamp")
 	}
 
 	now := time.Now()
@@ -31,5 +38,5 @@ func main() {
 		diffString = diff.String()
 	}
 
-	fmt.Println(diffString)
+	fmt.Printf(diffString)
 }
