@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -8,7 +9,12 @@ import (
 	"time"
 )
 
-const layoutDateTime = "2006-01-02 15:04:05"
+var timeLayouts = []string{
+	"2006-01-02 15:04:05",
+	"2006-01-02 15:04",
+	"2006-01-02 15",
+	"2006-01-02",
+}
 
 func main() {
 	var diffInHours, diffInDays bool
@@ -23,10 +29,10 @@ func main() {
 	}
 
 	timeString := flag.Arg(0)
-	timestamp, err := time.ParseInLocation(layoutDateTime, timeString, time.Local)
+	timestamp, err := parseTime(timeString, timeLayouts)
 
 	if err != nil {
-		log.Fatalf("Could not parse first timestamp")
+		log.Fatalf(err.Error())
 	}
 
 	now := time.Now()
@@ -42,4 +48,16 @@ func main() {
 	}
 
 	fmt.Printf(diffString)
+}
+
+func parseTime(timeString string, timeLayouts []string) (timestamp time.Time, error error) {
+	for _, layout := range timeLayouts {
+
+		timestamp, err := time.ParseInLocation(layout, timeString, time.Local)
+		if err == nil {
+			return timestamp, nil
+		}
+	}
+	error = errors.New("Could not parse timestamp")
+	return
 }
