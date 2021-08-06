@@ -11,8 +11,9 @@ import (
 const layoutDateTime = "2006-01-02 15:04:05"
 
 func main() {
-	var diffInHours bool
+	var diffInHours, diffInDays bool
 	flag.BoolVar(&diffInHours, "h", false, "diff in hours")
+	flag.BoolVar(&diffInDays, "d", false, "diff in days")
 	flag.Parse()
 
 	if len(flag.Args()) == 0 {
@@ -34,6 +35,8 @@ func main() {
 
 	if diffInHours {
 		diffString = fmt.Sprintf("%.2f", diff.Hours()) + "h"
+	} else if diffInDays {
+		diffString = fmt.Sprintf("%.2f", diff.Hours()/24) + "d"
 	} else {
 		diffString = diff.String()
 	}
