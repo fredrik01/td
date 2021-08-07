@@ -4,8 +4,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -22,21 +24,20 @@ func main() {
 	flag.BoolVar(&diffInDays, "d", false, "diff in days")
 	flag.Parse()
 
-	if len(flag.Args()) == 0 {
-		fmt.Println("Usage: td [flags] [argument]")
-		flag.PrintDefaults()
+	timeString, err := getFirstArgument()
+
+	if err != nil {
+		printUsage()
 		os.Exit(1)
 	}
 
-	timeString := flag.Arg(0)
 	timestamp, err := parseTime(timeString, timeLayouts)
 
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
 
-	now := time.Now()
-	diff := now.Sub(timestamp).Round(time.Second)
+	diff := time.Now().Sub(timestamp).Round(time.Second)
 	var diffString string
 
 	if diffInHours {
@@ -48,6 +49,30 @@ func main() {
 	}
 
 	fmt.Printf(diffString)
+}
+
+func getFirstArgument() (string, error) {
+	if isInputFromPipe() {
+		bytes, err := io.ReadAll(os.Stdin)
+		return strings.TrimSpace(string(bytes)), err
+	}
+
+	argument := flag.Arg(0)
+	if len(argument) == 0 {
+		return "", errors.New("Missing argument")
+	}
+
+	return argument, nil
+}
+
+func isInputFromPipe() bool {
+	fileInfo, _ := os.Stdin.Stat()
+	return fileInfo.Mode()&os.ModeCharDevice == 0
+}
+
+func printUsage() {
+	fmt.Println("Usage: td [flags] [argument]")
+	flag.PrintDefaults()
 }
 
 func parseTime(timeString string, timeLayouts []string) (timestamp time.Time, error error) {
