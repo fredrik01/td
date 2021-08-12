@@ -73,7 +73,7 @@ func main() {
 		output = prettyTime(year, month, day, hour, min, sec, hasTime)
 	}
 
-	fmt.Printf(output)
+	fmt.Println(output)
 }
 
 func getFirstArgument() (string, error) {
