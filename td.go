@@ -32,7 +32,8 @@ func (c If) String(a, b string) string {
 }
 
 func main() {
-	var diffInHours, diffInDays, diffInMinutes bool
+	var diffInHours, diffInDays, diffInMinutes, diffInSeconds bool
+	flag.BoolVar(&diffInSeconds, "s", false, "diff in seconds")
 	flag.BoolVar(&diffInMinutes, "m", false, "diff in minutes")
 	flag.BoolVar(&diffInHours, "h", false, "diff in hours")
 	flag.BoolVar(&diffInDays, "d", false, "diff in days")
@@ -59,7 +60,9 @@ func main() {
 	now := time.Now().Local()
 	var output string
 
-	if diffInMinutes {
+	if diffInSeconds {
+		output = fmt.Sprintf("%.2f", now.Sub(timestamp).Round(time.Second).Seconds()) + " seconds"
+	} else if diffInMinutes {
 		output = fmt.Sprintf("%.2f", now.Sub(timestamp).Round(time.Second).Minutes()) + " minutes"
 	} else if diffInHours {
 		output = fmt.Sprintf("%.2f", now.Sub(timestamp).Round(time.Second).Hours()) + " hours"
