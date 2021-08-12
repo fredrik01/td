@@ -69,7 +69,7 @@ func main() {
 	} else if diffInDays {
 		output = fmt.Sprintf("%.2f", now.Sub(timestamp).Round(time.Second).Hours()/24) + " days"
 	} else {
-		year, month, day, hour, min, sec := diff(time.Now(), timestamp)
+		year, month, day, hour, min, sec := diff(now, timestamp)
 		output = prettyTime(year, month, day, hour, min, sec, hasTime)
 	}
 
