@@ -2,7 +2,7 @@
 
 Simple tool get time diffs. Can only diff against current time for now.
 
-Examples:
+## Usage
 
 ```shell
 td "2021-08-05 22:00:01"
@@ -14,8 +14,6 @@ td 2019-12-31
 td -h "2021-08-05 22:00:01"
 # 159.34 hours
 ```
-
-Usage:
 
 ```
 Usage: td [flags] [argument]
@@ -35,3 +33,12 @@ Usage: td [flags] [argument]
 	mv /tmp/td/td /usr/local/bin/td
 	rm td.tar.gz
 	rm -r /tmp/td
+
+### Android / Termux
+
+	curl -L https://github.com/fredrik01/td/releases/latest/download/td_android_arm64.tar.gz -o td.tar.gz
+	mkdir td
+	tar -xvf td.tar.gz -C td
+	mv td/td $PREFIX/bin/td 
+	rm td.tar.gz
+	rm -r td
