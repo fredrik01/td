@@ -7,15 +7,28 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
-var timeLayouts = []string{
+var dateTimeLayouts = []string{
 	"2006-01-02 15:04:05",
 	"2006-01-02 15:04",
 	"2006-01-02 15",
+}
+
+var dateLayouts = []string{
 	"2006-01-02",
+}
+
+type If bool
+
+func (c If) String(a, b string) string {
+	if c {
+		return a
+	}
+	return b
 }
 
 func main() {
@@ -31,24 +44,30 @@ func main() {
 		os.Exit(1)
 	}
 
-	timestamp, err := parseTime(timeString, timeLayouts)
+	hasTime := true
+	timestamp, err := parseTime(timeString, dateTimeLayouts)
 
 	if err != nil {
-		log.Fatalf(err.Error())
+		hasTime = false
+		timestamp, err = parseTime(timeString, dateLayouts)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
 	}
 
-	diff := time.Now().Sub(timestamp).Round(time.Second)
-	var diffString string
+	now := time.Now().Local()
+	var output string
 
 	if diffInHours {
-		diffString = fmt.Sprintf("%.2f", diff.Hours()) + "h"
+		output = fmt.Sprintf("%.2f", now.Sub(timestamp).Round(time.Second).Hours()) + " hours"
 	} else if diffInDays {
-		diffString = fmt.Sprintf("%.2f", diff.Hours()/24) + "d"
+		output = fmt.Sprintf("%.2f", now.Sub(timestamp).Round(time.Second).Hours()/24) + " days"
 	} else {
-		diffString = diff.String()
+		year, month, day, hour, min, sec := diff(time.Now(), timestamp)
+		output = prettyTime(year, month, day, hour, min, sec, hasTime)
 	}
 
-	fmt.Printf(diffString)
+	fmt.Printf(output)
 }
 
 func getFirstArgument() (string, error) {
@@ -84,5 +103,103 @@ func parseTime(timeString string, timeLayouts []string) (timestamp time.Time, er
 		}
 	}
 	error = errors.New("Could not parse timestamp")
+	return
+}
+
+func prettyTime(year, month, day, hour, min, sec int, hasTime bool) string {
+	var sb strings.Builder
+
+	if year != 0 {
+		sb.WriteString(strconv.Itoa(year))
+		yearString := If(year == 1).String("year", "years")
+		sb.WriteString(fmt.Sprintf(" %s ", yearString))
+	}
+
+	if month != 0 {
+		sb.WriteString(strconv.Itoa(month))
+		monthString := If(month == 1).String("month", "months")
+		sb.WriteString(fmt.Sprintf(" %s ", monthString))
+	}
+
+	// Catch edge case for when diffing against current day
+	emptyOutputAndNoTime := sb.Len() == 0 && !hasTime
+	if day != 0 || emptyOutputAndNoTime {
+		sb.WriteString(strconv.Itoa(day))
+		dayString := If(day == 1).String("day", "days")
+		sb.WriteString(fmt.Sprintf(" %s ", dayString))
+
+	}
+
+	if !hasTime {
+		return sb.String()
+	}
+
+	if hour != 0 {
+		sb.WriteString(strconv.Itoa(hour))
+		hourString := If(hour == 1).String("hour", "hours")
+		sb.WriteString(fmt.Sprintf(" %s ", hourString))
+	}
+
+	if min != 0 {
+		sb.WriteString(strconv.Itoa(min))
+		minString := If(min == 1).String("minute", "minutes")
+		sb.WriteString(fmt.Sprintf(" %s ", minString))
+	}
+
+	// Catch edge case for when diffing against current date and time
+	if sec != 0 || sb.Len() == 0 {
+		sb.WriteString(strconv.Itoa(sec))
+		secString := If(sec == 1).String("second", "seconds")
+		sb.WriteString(fmt.Sprintf(" %s ", secString))
+	}
+
+	return sb.String()
+}
+
+// https://stackoverflow.com/questions/36530251/time-since-with-months-and-years/36531443#36531443
+func diff(a, b time.Time) (year, month, day, hour, min, sec int) {
+	if a.Location() != b.Location() {
+		b = b.In(a.Location())
+	}
+	if a.After(b) {
+		a, b = b, a
+	}
+	y1, M1, d1 := a.Date()
+	y2, M2, d2 := b.Date()
+
+	h1, m1, s1 := a.Clock()
+	h2, m2, s2 := b.Clock()
+
+	year = int(y2 - y1)
+	month = int(M2 - M1)
+	day = int(d2 - d1)
+	hour = int(h2 - h1)
+	min = int(m2 - m1)
+	sec = int(s2 - s1)
+
+	// Normalize negative values
+	if sec < 0 {
+		sec += 60
+		min--
+	}
+	if min < 0 {
+		min += 60
+		hour--
+	}
+	if hour < 0 {
+		hour += 24
+		day--
+	}
+	if day < 0 {
+		// days in month:
+		t := time.Date(y1, M1, 32, 0, 0, 0, 0, time.Local)
+		day += 32 - t.Day()
+		month--
+	}
+	if month < 0 {
+		month += 12
+		year--
+	}
+
 	return
 }
